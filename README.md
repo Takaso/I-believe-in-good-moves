@@ -16,7 +16,7 @@ A script to break the habit of speed blitzing your chess moves in long games and
 
 ---
 
-## 🕹️ How to Use
+## How to Use
 
 1. **Configure options** in the floating panel:
    - **Playing vs Bot?** toggle if you're playing a computer
