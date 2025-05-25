@@ -1,5 +1,4 @@
-// Use this script with worse CSS if your browser lags and to bypass CSP
-
+// Use this script to bypass CSP
 
 (function () {
   // inject custom CSS
