@@ -4,6 +4,17 @@ A script to break the habit of speed blitzing your chess moves in long games and
 
 ---
 
+## Content Security Policy
+
+If Chess.com blocks the script due to Content Security Policy (CSP) restrictions, you can bypass this by using the modified script provided in the `/csp-bypass` directory
+
+### How to Use the CSP-Bypass Version
+
+1. Open the file inside `/csp-bypass` (not `main.js`)
+2. Paste it into the browser console instead
+   
+---
+
 ## Setup
 
 1. **Open a game** on Chess.com (live or vs. computer)
@@ -48,8 +59,4 @@ https://github.com/user-attachments/assets/63b1b684-1577-4250-b70d-7eaf9257449e
 
 ---
 
-> **Note:** This is intended for training/visualization only. Use responsibly and in accordance with Chess.com’s terms of service
-
-
-
-
+> **Note:** This is intended for training only, use responsibly and in accordance with Chess.com’s terms of service
