@@ -1,0 +1,222 @@
+(function () {
+    // inject tailwind, nya, because chess.com allows it
+    const tl = document.createElement("script");
+    tl.src = "https://cdn.tailwindcss.com";
+    document.head.appendChild(tl);
+
+    // custom keyframes and styles
+    const style = document.createElement("style");
+    style.textContent = `
+        @tailwind base;
+        @tailwind components;
+        @tailwind utilities;
+
+        @layer utilities {
+            @keyframes psychedelic {
+                0%,100% { transform: translateY(0); }
+                50% { transform: translateY(-2px); }
+            }
+            @keyframes fadeInUp {
+                0% { opacity: 0; transform: translateY(10px); }
+                100% { opacity: 1; transform: translateY(0); }
+            }
+            .animate-psychedelic { animation: psychedelic 2s ease-in-out infinite; }
+            .animate-fadeInUp { animation: fadeInUp 0.5s ease-out forwards; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // main GUI
+    const GUI = document.createElement("div");
+    GUI.className = [
+        "fixed top-6 left-6 w-80 p-6 bg-white bg-opacity-90 dark:bg-gray-900 dark:bg-opacity-80",
+        "backdrop-blur-lg rounded-3xl shadow-2xl ring-2 ring-gray-300 dark:ring-gray-700 z-50",
+        "opacity-0 animate-fadeInUp transition-all duration-500 hover:scale-105"
+    ].join(" ");
+
+    // header
+    const header = document.createElement("h1");
+    header.textContent = "♟️ I believe in good moves";
+    header.className = "text-2xl font-extrabold cursor-move select-none text-gray-900 dark:text-gray-100 mb-6 tracking-wide";
+    GUI.appendChild(header);
+
+    // field container
+    const field = document.createElement("div");
+    field.className = "flex flex-col gap-4";
+
+    // bot toggle
+    const botContainer = document.createElement("div");
+    botContainer.className = "flex items-center gap-3";
+    const botToggle = document.createElement("input");
+    botToggle.type = "checkbox";
+    botToggle.id = "playBot";
+    botToggle.className = "w-6 h-6 accent-blue-500";
+    const botLabel = document.createElement("label");
+    botLabel.htmlFor = "playBot";
+    botLabel.textContent = "Playing vs Bot?";
+    botLabel.className = "text-base text-gray-700 dark:text-gray-300 font-medium";
+    botContainer.appendChild(botToggle);
+    botContainer.appendChild(botLabel);
+    field.appendChild(botContainer);
+
+    // color select
+    const colorLabel = document.createElement("label");
+    colorLabel.textContent = "Your color:";
+    colorLabel.className = "text-base text-gray-700 dark:text-gray-300 font-medium";
+    const colorSelect = document.createElement("select");
+    colorSelect.className = "w-full px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400";
+    ["White","Black"].forEach(color => {
+        const o = document.createElement("option");
+        o.value = color.toLowerCase();
+        o.textContent = color;
+        colorSelect.appendChild(o);
+    });
+    field.appendChild(colorLabel);
+    field.appendChild(colorSelect);
+
+    // think time
+    const timeLabel = document.createElement("label");
+    timeLabel.textContent = "Think time (sec):";
+    timeLabel.className = "text-base text-gray-700 dark:text-gray-300 font-medium";
+    const timeInput = document.createElement("input");
+    timeInput.type = "number";
+    timeInput.value = 30;
+    timeInput.min = 1;
+    timeInput.max = 300;
+    timeInput.className = "w-full px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400";
+    field.appendChild(timeLabel);
+    field.appendChild(timeInput);
+
+    // start/stop button
+    const toggleBtn = document.createElement("button");
+    toggleBtn.textContent = "Start Observer";
+    toggleBtn.className = "mt-4 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-indigo-500 hover:to-blue-500 text-white font-semibold rounded-2xl shadow-lg transition-transform transform hover:scale-105";
+    field.appendChild(toggleBtn);
+    GUI.appendChild(field);
+
+    // footer inside GUI
+    const credit = document.createElement("p");
+    credit.textContent = "Made by Takaso";
+    credit.className = "mt-6 text-center text-sm text-gray-500 dark:text-gray-400 italic";
+    GUI.appendChild(credit);
+
+    document.body.appendChild(GUI);
+
+    // drag functionality
+    let dragging = false, offX = 0, offY = 0;
+    header.addEventListener("mousedown", e => {
+        dragging = true;
+        const rect = GUI.getBoundingClientRect();
+        offX = e.clientX - rect.left;
+        offY = e.clientY - rect.top;
+    });
+    document.addEventListener("mousemove", e => {
+        if (dragging) {
+            GUI.style.left = `${e.clientX - offX}px`;
+            GUI.style.top = `${e.clientY - offY}px`;
+        }
+    });
+    document.addEventListener("mouseup", () => dragging = false);
+
+    // observer logic
+    let observer = null, state = "idle";
+    let overlay, countdown, intervalId;
+
+    function blockFor(seconds) {
+        overlay = document.createElement("div");
+        Object.assign(overlay.style, {
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: 9998,
+            background: 'rgba(0,0,0,0.2)',
+            pointerEvents: 'all'
+        });
+        document.body.appendChild(overlay);
+
+        countdown = document.createElement("div");
+        countdown.textContent = seconds;
+        countdown.className = "fixed top-4 left-1/2 transform -translate-x-1/2 px-5 py-3 bg-gray-900 bg-opacity-90 text-white text-xl font-mono rounded-xl shadow-2xl z-9999 animate-pulse";
+        document.body.appendChild(countdown);
+
+        let t = seconds;
+        intervalId = setInterval(() => {
+            t--;
+            countdown.textContent = t;
+            if (t <= 0) {
+                clearInterval(intervalId);
+                overlay.remove();
+                countdown.remove();
+                state = "waitingOpponent";
+                console.log("Your turn");
+            }
+        }, 1000);
+    }
+
+    function startObs() {
+        const yourColor = colorSelect.value[0];
+        const oppColor = yourColor === "w" ? "b" : "w";
+        state = "waitingOpponent";
+
+        if (observer) observer.disconnect();
+        observer = new MutationObserver(mutations => {
+            console.log("Mutation detected:", mutations);
+            mutations.forEach(m => {
+                const cls = m.target.className || '';
+                if (m.type === "attributes" && m.attributeName === "class") {
+                    if (state === "waitingOpponent" && cls.includes(`piece ${oppColor}`)) {
+                        console.log("Opponent moved, blocking for", timeInput.value, "s");
+                        state = "blocking";
+                        blockFor(parseInt(timeInput.value, 10));
+                    }
+                    if (state === "waitingUser" && cls.includes(`piece ${yourColor}`)) {
+                        console.log("Your move registered via attribute");
+                        state = "waitingOpponent";
+                    }
+                }
+                if (m.type === "childList" && m.addedNodes.length) {
+                    m.addedNodes.forEach(node => {
+                        if (node.nodeType === 1) {
+                            const nodeCls = node.className || '';
+                            if (state === "waitingUser" && nodeCls.includes(`piece ${yourColor}`)) {
+                                console.log("Your move registered via childList");
+                                state = "waitingOpponent";
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        const boardSel = botToggle.checked ? "#board-play-computer" : "#board-single";
+        let board = document.querySelector(boardSel);
+        if (!board) {
+            console.warn(`Board not found using ${boardSel}, trying fallback selector .board`);
+            board = document.querySelector('.board');
+        }
+        if (!board) {
+            return alert("Chess board not found, make sure you're on the game page");
+        }
+
+        observer.observe(board, { attributes: true, subtree: true, attributeFilter: ["class"], childList: true });
+
+        state = "waitingUser";
+        toggleBtn.textContent = "Stop Observer";
+        toggleBtn.className = toggleBtn.className.replace("from-blue-500 to-indigo-500", "from-red-500 to-pink-500").replace("hover:from-indigo-500 hover:to-blue-500", "hover:from-pink-500 hover:to-red-500");
+        console.log("Observer started on", board);
+    }
+
+    function stopObs() {
+        if (observer) observer.disconnect();
+        state = "idle";
+        toggleBtn.textContent = 'Start Observer';
+        toggleBtn.className = toggleBtn.className.replace(/from-red-500 to-pink-500/, "from-blue-500 to-indigo-500").replace(/hover:from-pink-500 hover:to-red-500/, "hover:from-indigo-500 hover:to-blue-500");
+        console.log("Observer stopped");
+    }
+
+    toggleBtn.addEventListener("click", () => {
+        state === "idle" ? startObs() : stopObs();
+    });
+})();
