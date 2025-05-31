@@ -5,7 +5,7 @@
         /* Keyframes */
         @keyframes psychedelic { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
         @keyframes fadeInUp { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
-        
+
         /* Main GUI */
         .chess-gui {
             position: fixed;
@@ -18,21 +18,25 @@
             border-radius: 24px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             border: 2px solid #d1d5db;
-            z-index: 9999;
+            z-index: 9998;
             opacity: 0;
             transition: all 0.5s;
             animation: fadeInUp 0.5s ease-out forwards;
         }
-        
+
+        .chess-gui.hidden {
+            display: none;
+        }
+
         .chess-gui:hover {
             transform: scale(1.05);
         }
-        
+
         .dark .chess-gui {
             background: rgba(17, 24, 39, 0.8);
             border: 2px solid #374151;
         }
-        
+
         /* Header */
         .chess-header {
             font-size: 1.5rem;
@@ -43,44 +47,44 @@
             margin-bottom: 24px;
             letter-spacing: 0.025em;
         }
-        
+
         .dark .chess-header {
             color: #f3f4f6;
         }
-        
+
         /* Form elements */
         .field-container {
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
-        
+
         .option-row {
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        
+
         .option-label {
             font-size: 1rem;
             font-weight: 500;
             color: #374151;
         }
-        
+
         .dark .option-label {
             color: #d1d5db;
         }
-        
+
         .form-label {
             font-size: 1rem;
             font-weight: 500;
             color: #374151;
         }
-        
+
         .dark .form-label {
             color: #d1d5db;
         }
-        
+
         .form-select, .form-input {
             width: 100%;
             padding: 8px 16px;
@@ -90,17 +94,17 @@
             border-radius: 12px;
             outline: none;
         }
-        
+
         .dark .form-select, .dark .form-input {
             background: #1f2937;
             color: #f9fafb;
             border-color: #4b5563;
         }
-        
+
         .form-select:focus, .form-input:focus {
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
         }
-        
+
         /* Button */
         .action-btn {
             margin-top: 16px;
@@ -114,15 +118,15 @@
             border: none;
             cursor: pointer;
         }
-        
+
         .action-btn:hover {
             transform: scale(1.05);
         }
-        
+
         .stop-btn {
             background: linear-gradient(to right, #ef4444, #ec4899);
         }
-        
+
         /* Footer */
         .credit-text {
             margin-top: 24px;
@@ -131,52 +135,90 @@
             color: #6b7280;
             font-style: italic;
         }
-        
+
         .dark .credit-text {
             color: #9ca3af;
         }
-        
-        /* Countdown elements */
-        .countdown-box {
+
+        /* Combined notification container */
+        .notification-container {
             position: fixed;
             top: 16px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
             background: rgba(17, 24, 39, 0.9);
             color: white;
             font-family: monospace;
-            font-size: 1.25rem;
             border-radius: 12px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             z-index: 9999;
+            font-size: 0.9rem;
         }
-        
-        .message-box {
-            position: fixed;
-            top: 64px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 20px;
-            font-size: 1.125rem;
+
+        .countdown-display {
+            font-weight: 700;
+            font-size: 1.1rem;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .message-display {
+            padding: 4px 8px;
+            border-radius: 6px;
             font-weight: 600;
-            border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            z-index: 9999;
+            font-size: 0.85rem;
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        
+
         .red-msg {
             background: #ef4444;
             color: #fee2e2;
         }
-        
+
         .blue-msg {
             background: #3b82f6;
             color: #dbeafe;
         }
-        
+
         .animate-psychedelic {
             animation: psychedelic 2s ease-in-out infinite;
+        }
+
+        /* Toggle‐Menu Button */
+        .toggle-menu-btn {
+            position: fixed;
+            top: 24px;
+            left: 360px; /* Just to the right of the 320px‐wide GUI */
+            width: 32px;
+            height: 32px;
+            background: rgba(59, 130, 246, 0.9);
+            color: white;
+            font-size: 1.25rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 5px 15px -3px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: background 0.3s;
+        }
+
+        .toggle-menu-btn:hover {
+            background: rgba(59, 130, 246, 1);
+        }
+
+        .toggle-menu-btn.hidden {
+            display: none;
         }
     `;
     document.head.appendChild(style);
@@ -265,9 +307,16 @@
     credit.textContent = "Made by Takaso";
     credit.className = "credit-text";
     GUI.appendChild(credit);
+
     document.body.appendChild(GUI);
 
-    // Drag functionality
+    // Toggle‐Menu Button (to show/hide .chess-gui)
+    const menuToggleBtn = document.createElement("button");
+    menuToggleBtn.className = "toggle-menu-btn";
+    menuToggleBtn.textContent = "✕"; // “✕” when menu is open
+    document.body.appendChild(menuToggleBtn);
+
+    // Drag functionality for the GUI
     let dragging = false,
         offX = 0,
         offY = 0;
@@ -288,14 +337,13 @@
     // Observer and state
     let observer = null,
         state = "idle",
-        overlay,
-        countdown,
-        intervalId,
-        msgBox;
+        notificationContainer,
+        intervalId;
 
     function blockFor(seconds) {
         const half = Math.ceil(seconds / 2);
-        overlay = document.createElement("div");
+
+        const overlay = document.createElement("div");
         Object.assign(overlay.style, {
             position: "fixed",
             top: 0,
@@ -303,37 +351,48 @@
             width: "100%",
             height: "100%",
             background: "rgba(0, 0, 0, 0)",
-            zIndex: 9998,
+            zIndex: 9997,
             pointerEvents: "all"
         });
         document.body.appendChild(overlay);
 
-        countdown = document.createElement("div");
-        countdown.className = "countdown-box";
-        document.body.appendChild(countdown);
+        // Create combined notification container
+        notificationContainer = document.createElement("div");
+        notificationContainer.className = "notification-container";
 
-        msgBox = document.createElement("div");
-        msgBox.className = "message-box";
-        document.body.appendChild(msgBox);
+        // Countdown display
+        const countdown = document.createElement("div");
+        countdown.className = "countdown-display";
+        countdown.textContent = seconds;
+
+        // Message display
+        const message = document.createElement("div");
+        message.className = "message-display";
+
+        notificationContainer.append(countdown, message);
+        document.body.appendChild(notificationContainer);
 
         let t = seconds;
         intervalId = setInterval(() => {
             t--;
             countdown.textContent = t;
+
             if (customToggle.checked) {
                 if (t > half) {
-                    msgBox.textContent = "Look for your opponent's Checks, Captures and Attacks";
-                    msgBox.className = "message-box red-msg";
+                    message.textContent = "Look for Checks, Captures, Attacks";
+                    message.className = "message-display red-msg";
                 } else {
-                    msgBox.textContent = "Look for Checks, Captures, Attacks and Optimization";
-                    msgBox.className = "message-box blue-msg";
+                    message.textContent = "Optimize position & look for tactics";
+                    message.className = "message-display blue-msg";
                 }
+            } else {
+                message.textContent = t > half ? "Analyze opponent's moves" : "Plan your strategy";
             }
+
             if (t <= 0) {
                 clearInterval(intervalId);
+                notificationContainer.remove();
                 overlay.remove();
-                countdown.remove();
-                msgBox.remove();
                 state = "waitingOpponent";
                 console.log("Your turn");
             }
@@ -382,6 +441,7 @@
 
     function stopObs() {
         if (observer) observer.disconnect();
+        if (notificationContainer) notificationContainer.remove();
         state = "idle";
         toggleBtn.textContent = "Start Observer";
         toggleBtn.classList.remove("stop-btn");
@@ -389,4 +449,14 @@
     }
 
     toggleBtn.addEventListener("click", () => (state === "idle" ? startObs() : stopObs()));
+
+    menuToggleBtn.addEventListener("click", () => {
+        if (GUI.classList.contains("hidden")) {
+            GUI.classList.remove("hidden");
+            menuToggleBtn.textContent = "✕";
+        } else {
+            GUI.classList.add("hidden");
+            menuToggleBtn.textContent = "☰";
+        }
+    });
 })();
